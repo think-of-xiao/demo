@@ -1,0 +1,89 @@
+package com.example.tox
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.util.AttributeSet
+import android.util.Log
+import android.view.MotionEvent
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+
+class MySufaceView : SurfaceView, SurfaceHolder.Callback, Runnable {
+    private var mHolder: SurfaceHolder
+    private var mWidth: Int = 0
+    private var mHeight: Int = 0
+    private var isRunning: Boolean = false
+    private lateinit var paint: Paint
+    private var radius: Float = 0.0f
+    private var status: Boolean = true
+    private var speed: Int = 3
+
+    constructor(context: Context?) : this(context, null)
+    constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
+    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : this(context, attrs, defStyleAttr, 0)
+    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes) {
+        Log.d("tox====", "constructor start....")
+        mHolder = holder
+        holder.addCallback(this)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        return super.onTouchEvent(event)
+    }
+
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+    }
+
+    override fun surfaceCreated(p0: SurfaceHolder) {
+        isRunning = true
+        // 初始化画笔
+        paint = Paint()
+        paint.isAntiAlias = true
+        paint.color = Color.BLUE
+        // 开启绘制线程
+        Thread(this).start()
+    }
+
+    override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
+        // 获取surface的宽
+        this.mWidth = p2
+        // 获取surface的高
+        this.mHeight = p3
+    }
+
+    override fun surfaceDestroyed(p0: SurfaceHolder) {
+        // 关闭绘制线程
+        isRunning = false
+    }
+
+    override fun run() {
+        var mCanvas: Canvas
+        while (isRunning) {
+            mCanvas = mHolder.lockCanvas()
+            mCanvas.drawColor(Color.WHITE)
+//            paint.strokeWidth = 8F
+            paint.style = Paint.Style.FILL_AND_STROKE
+            paint.textSize = context.resources.displayMetrics.scaledDensity * 16F + 0.5F
+            paint.textAlign = Paint.Align.CENTER
+            mCanvas.drawText("我是头部文字", (mWidth/2).toFloat(), paint.textSize, paint)
+            mCanvas.drawCircle((mWidth/2).toFloat(), (mHeight/2).toFloat(), radius, paint)
+            if (status) {
+                radius += speed
+                if (radius > 200) {
+                    status = false
+                }
+            } else {
+                radius -= speed
+                if (radius <= 0) {
+                    status  = true
+                }
+            }
+            mHolder.unlockCanvasAndPost(mCanvas)
+        }
+    }
+}
